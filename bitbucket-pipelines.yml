@@ -12,6 +12,6 @@ pipelines:
           - pip
         script: # Modify the commands below to build your repository.
           - pip install -r requirements.txt
-          - pyinstall diff.py
-          - pyinstall unpack.py
-          - pyinstall pack.py
+          - pyinstaller diff.py
+          - pyinstaller unpack.py
+          - pyinstaller pack.py
