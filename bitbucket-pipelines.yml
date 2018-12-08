@@ -19,7 +19,7 @@ pipelines:
           - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/homonoia/x4-utils/downloads" --form files=@"dist/pack"
           - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/homonoia/x4-utils/downloads" --form files=@"dist/unpack"
     - step:
-        image: pywine:latest
+        image: tobix/pywine:latest
         caches:
           - pip
         script: # Modify the commands below to build your repository.
