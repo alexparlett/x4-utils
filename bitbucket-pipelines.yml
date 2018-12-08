@@ -28,5 +28,5 @@ pipelines:
           - wine pyinstaller unpack.py --onefile --nowindow 	
           - wine pyinstaller pack.py --onefile --nowindow 
           - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/homonoia/x4-utils/downloads" --form files=@"dist/diff.exe"
-          - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/homonoia/x4-utils/downloads" --form files=@"dist/pack"
+          - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/homonoia/x4-utils/downloads" --form files=@"dist/pack.exe"
           - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/homonoia/x4-utils/downloads" --form files=@"dist/unpack.exe"
