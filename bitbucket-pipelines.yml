@@ -14,7 +14,5 @@ pipelines:
           - pip install -r requirements.txt
           - pyinstaller diff.py --onefile --nowindow	 
           - pyinstaller unpack.py --onefile --nowindow 	
-          - pyinstaller pack.py --onefile --nowindow 	
-    - step:
-         script: 
-           - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/homonoia/x4-utils/downloads" --form files=@"dist/*"
+          - pyinstaller pack.py --onefile --nowindow 
+          - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/homonoia/x4-utils/downloads" --form files=@"dist/*"
