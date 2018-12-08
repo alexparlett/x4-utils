@@ -3,11 +3,11 @@
 # Only use spaces to indent your .yml configuration.
 # -----
 # You can specify a custom docker image from Docker Hub as your build environment.
-image: python:3.5.1
 
 pipelines:
   default:
     - step:
+        image: python:3.5.1
         caches:
           - pip
         script: # Modify the commands below to build your repository.
@@ -15,4 +15,18 @@ pipelines:
           - pyinstaller diff.py --onefile --nowindow	 
           - pyinstaller unpack.py --onefile --nowindow 	
           - pyinstaller pack.py --onefile --nowindow 
-          - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/homonoia/x4-utils/downloads" --form files=@"dist/*"
+          - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/homonoia/x4-utils/downloads" --form files=@"dist/diff"
+          - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/homonoia/x4-utils/downloads" --form files=@"dist/pack"
+          - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/homonoia/x4-utils/downloads" --form files=@"dist/unpack"
+    - step:
+        image: pywine:latest
+        caches:
+          - pip
+        script: # Modify the commands below to build your repository.
+          - wine pip install -r requirements.txt
+          - wine pyinstaller diff.py --onefile --nowindow	 
+          - wine pyinstaller unpack.py --onefile --nowindow 	
+          - wine pyinstaller pack.py --onefile --nowindow 
+          - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/homonoia/x4-utils/downloads" --form files=@"dist/diff.exe"
+          - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/homonoia/x4-utils/downloads" --form files=@"dist/pack"
+          - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/homonoia/x4-utils/downloads" --form files=@"dist/unpack.exe"
