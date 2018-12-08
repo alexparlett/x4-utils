@@ -1,0 +1,5 @@
+dictdiffer
+lxml
+argparse
+filehash
+pyinstaller
