@@ -15,6 +15,10 @@ unique_attrib = [
     'ref'
 ]
 
+excluded_attrib = [
+    '{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation'
+]
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -55,22 +59,25 @@ def compare(left, right):
 
 
 def parse_children(element, tree, xpath):
+    if 'comment' in element.tag:
+        return
+
     path = better_xpath(element,tree)
     entry = {
         'tag': element.tag,
-        'attrib': element.attrib,
+        'attrib': {key: value for (key, value) in element.attrib.items() if key not in excluded_attrib},
         'text': element.text,
+        'path': path,
         'children': {}
     }
 
+    xpath[path] = entry
     for child in element.getchildren():
         parse_children(child, tree, entry['children'])
 
-    xpath[path] = entry
-
 
 def find_differences(left, right):
-    return list(diff(left, right))
+    return list(diff(left, right, ignore=set(['path'])))
 
 
 def patch(differences, lTree, rTree, lDict, rDict, out):
@@ -83,41 +90,46 @@ def patch(differences, lTree, rTree, lDict, rDict, out):
         change = difference[2]
 
         if type == 'change':
-            lnode = dot_lookup(lDict, path, parent=True)
-            if path.endswith('attrib'):
-                ac = dict(change[1].items() - change[0].items())
-                rm = dict(change[0].items() - change[1].items())
-                for key, value in ac.items():
-                    if key in change[0]:
-                        replace = etree.SubElement(root, 'replace', attrib={ 'sel': lnode['path'] + '/@' + key})
-                        replace.text = value.strip()
-                    else:
-                        add = etree.SubElement(root, 'add', attrib={ 'sel': lnode['path'], 'type': '@' + key})
-                        add.text = value.strip()
-                for key, value in rm.items():
-                    if key not in change[1]:
-                         etree.SubElement(root, 'remove', attrib={ 'sel': lnode['path'] + '/@' + key})
+            if 'attrib' in path:
+                split = path.split('.attrib.')
+                parent_path = path.split('.attrib.')[0]
+                attrib = path.split('.attrib.')[1]
+                lnode = dot_lookup(lDict, parent_path)
+                replace = etree.SubElement(root, 'replace', attrib={ 'sel': lnode['path'] + '/@' + attrib})
+                replace.text = change[1]
             else:
+                lnode = dot_lookup(lDict, path, parent=True)
                 replace = etree.SubElement(root, 'replace', attrib={ 'sel': lnode['path'] + '/text()'})
-                replace.text = change[1].strip()
+                replace.text = change[1]
         elif type == 'add':
-            for c in change: 
-                xpath = c[0]
-                relement = rTree.xpath(xpath)[0]
-                lelement = relement.getprevious()
-                if lelement is not None:
-                    xpath = better_xpath(lelement, rTree)
-                    add = etree.SubElement(root, 'add', attrib={ 'sel': xpath, 'pos': 'after'})
-                    add.insert(0, deepcopy(relement))
-                else:
-                    lelement = relement.getparent()
-                    xpath = better_xpath(lelement, rTree)
-                    add = etree.SubElement(root, 'add', attrib={ 'sel': xpath, 'pos': 'prepend'})
-                    add.insert(0, deepcopy(relement))
+            if 'attrib' in path:
+                for c in change: 
+                    lnode = dot_lookup(lDict, path, parent=True)
+                    add = etree.SubElement(root, 'add', attrib={ 'sel': lnode['path'], 'type': '@' + c[0]})
+                    add.text = c[1]
+            else: 
+                for c in change: 
+                    xpath = c[0]
+                    relement = rTree.xpath(xpath)[0]
+                    lelement = relement.getprevious()
+                    if lelement is not None:
+                        xpath = better_xpath(lelement, rTree)
+                        add = etree.SubElement(root, 'add', attrib={ 'sel': xpath, 'pos': 'after'})
+                        add.insert(0, deepcopy(relement))
+                    else:
+                        lelement = relement.getparent()
+                        xpath = better_xpath(lelement, rTree)
+                        add = etree.SubElement(root, 'add', attrib={ 'sel': xpath, 'pos': 'prepend'})
+                        add.insert(0, deepcopy(relement))
         elif type == 'remove':
-            for c in change: 
-                xpath = c[0]
-                etree.SubElement(root, 'remove', attrib={ 'sel': xpath})
+            if 'attrib' in path:
+                for c in change: 
+                    lnode = dot_lookup(lDict, path, parent=True)
+                    remove = etree.SubElement(root, 'remove', attrib={ 'sel': lnode['path'] + '/@' + c[0]})
+            else:
+                for c in change: 
+                    xpath = c[0]
+                    etree.SubElement(root, 'remove', attrib={ 'sel': xpath})
 
     et = etree.ElementTree(root)
     et.write(out, xml_declaration=True, encoding='utf-8', pretty_print=True)
