@@ -21,6 +21,7 @@ parser.add_argument('-i', '--include', type=list, nargs='*',
                     help='files to include, by default this is all cat files found in the directory')
 parser.add_argument('-f', '--filter', default='^.*(xml|xsd|html|js|css|lua)$',
                     help='A Regex filter of which embedded files to extract, by default this is xml,xsd,html,js,css,lua')
+parser.add_argument('-v', '--versioned', action='store_true', help='If set will append the version (found in version.dat) to the end of the destdir')
 
 args = parser.parse_args()
 

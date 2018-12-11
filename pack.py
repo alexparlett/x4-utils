@@ -5,7 +5,7 @@ import zipfile
 from lxml import etree, objectify
 from filehash import FileHash
 
-sha256 = FileHash('sha256')
+hasher = FileHash('md5')
 
 
 def main():
@@ -46,7 +46,7 @@ def create_catalog(context, files, directory):
         for file in files:
             with open(file, 'rb') as source:
                 stats = os.stat(file)
-                hash = sha256.hash_file(file)
+                hash = hasher.hash_file(file)
                 cat.write("%s %s %s %s\n" %
                           (os.path.relpath(file, directory), int(stats.st_size), int(stats.st_mtime), hash))
                 dat.write(source.read())
